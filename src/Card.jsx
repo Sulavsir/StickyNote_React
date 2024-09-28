@@ -6,153 +6,202 @@ import Typography from "@mui/material/Typography";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteForeverIcon from "@mui/icons-material/DeleteForever";
 import Button from "@mui/material/Button";
+import Grid from "@mui/material/Grid"; 
 import { useState } from "react";
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
- 
-export default function Cards() {
-  const [title, setTitle] = useState("Your Title goes here");
-  const [words, setWords] = useState("Word for the day");
-  const [describe, setDescribe] = useState("Describe your text here");
 
-  const handleTitle = (e) => setTitle(e.target.value);
-  const handleWords = (e) => setWords(e.target.value);
-  const handleDescribe = (e) => setDescribe(e.target.value);
+export default function Cards() {
+  const [editingCard, setEditingCard] = useState({
+    id: null,
+    title: "Title",
+    words: "Your words here",
+    describe: "Description goes here",
+  });
+
+  const handleInputChange = (event) => {
+    setEditingCard({
+      ...editingCard,
+      [event.target.name]: event.target.value,
+    });
+  };
 
   let [cards, setCards] = useState([
     {
       id: 1,
-      title: "title written",
+      title: "Strength",
       words: "A strength is everything",
-      describe: "your words is the strength to me ",
+      describe: "Your words is the strength to me ",
     },
   ]);
 
-  const handleCardData = (e) => {
-    e.preventDefault();
-  };
-
   const addCard = () => {
     const newCard = {
-      id: cards.length + 1,
-      title,
-      words,
-      describe,
+      id: cards.length ? cards.at(-1).id + 1 : 1,
+      title: editingCard.title,
+      words: editingCard.words,
+      describe: editingCard.describe,
     };
+    setEditingCard(newCard);
     setCards([...cards, newCard]);
-    console.log("New cards have been added", [...cards, newCard]);
   };
 
-  const deleteCard = (id)=>{
-    cards = cards.filter((cardId)=> cardId.id === id)
-  }
+  const deleteCard = (id) => {
+    if (!id) return toast.error("No note to be found");
+    const deletedCards = cards.filter((cardId) => cardId.id !== id);
+    if (!deletedCards) return toast.error("No card to be found to delete");
+    setCards(deletedCards);
+    toast.error("Data Deleted Successfully");
+  };
 
-  const editCard = (id, fields) =>{
-    const cardID = cards.findIndex((card)=> id=== card.id)
-    if(index === -1) return alert("cant find the note")
-    cards[cardID] ={
-      ...cards[cardID],
-      fields
-    }
-    setCards([...cards])
-  }
+  const editCard = (id) => {
+    const card = cards.find((card) => id === card.id);
+    if (!card) return toast.error("Can't find the note");
+    setEditingCard(card);
+    toast.info("You can now Edit your note... !");
+  };
 
   const handleSave = () => {
+    if (!editingCard.id) return toast.error("No card selected to save.");
+
+    const updatedCards = cards.map((card) =>
+      card.id === editingCard.id
+        ? {
+            ...card,
+            title: editingCard.title,
+            words: editingCard.words,
+            describe: editingCard.describe,
+          }
+        : card
+    );
+
+    setCards(updatedCards);
     toast.success("Note Saved Successfully !");
-  }
+    setEditingCard({ id: null, title: "", words: "", describe: "" });
+  };
 
   return (
     <Box
       sx={{
         display: "flex",
-        alignItems: "flex-start",
-        justifyContent: "flex-start",
-        width: "100%",
-        position: "fixed",
-        my: 2,
+    flexDirection: "column",
+    alignItems: "flex-start",
+    justifyContent: "flex-start",
+    width: "100%",
+    position: "fixed",
+    my: 2,
+    overflowY: "auto", 
+    maxHeight: "85vh" 
       }}
     >
-      {cards.map((card) => (
-        <Card key={card.id} sx={{ width: "100%", maxWidth: 300, mx: 2 }}>
-          <CardContent>
-            <Typography variant="h6">{card.id}</Typography>
-            <input
-              type="text"
-              placeholder=" Title here"
-              onChange={handleTitle}
-              style={{
-                display: "block",
-                marginBottom: "10px",
-                padding: "5px",
-                backgroundColor: "black",
-                color: "white",
-              }}
-            />
-            <input
-              type="text"
-              placeholder="Words of the day here"
-              onChange={handleWords}
-              style={{
-                display: "block",
-                marginBottom: "10px",
-                padding: "3px",
-                backgroundColor: "black",
-                color: "white",
-                fontStyle: "italic",
-              }}
-            />
-
-            <textarea
-              placeholder="Description of the Text here"
-              style={{
-                display: "block",
-                marginBottom: "10px",
-                padding: "15px",
-                backgroundColor: "black",
-                color: "white",
-              }}
-              onChange={handleDescribe}
-            ></textarea>
-          </CardContent>
-          <CardActions>
-            <Button size="small" sx={{ py: 1 }} onClick={()=>{
-                toast.success("Note Edited Successfully !")
-            }}>
-              <EditIcon />
-            </Button>
-            <Button
-              size="small"
-              sx={{ py: 1 }}
-              onClick={() => {
-                toast.error("Note Deleted Successfully");
-              }}
-            >
-              <DeleteForeverIcon />
-            </Button>
-            <Button
-              size="small"
-              sx={{ py: 1, width: "60%" }}
-              onClick={handleSave}
-            >
-              Save
-            </Button>
-          </CardActions>
-        </Card>
-      ))}
-
-      <Button
-        variant="contained"
-        sx={{
-          height: "100%",
-          minWidth: "40px",
-          mx: 2,
-          p: 3,
-        }}
-        color="secondary"
-        onClick={addCard}
-      >
-        +
-      </Button>
+      <Grid container spacing={2} sx={{ width: "100%" }}> 
+        {cards.map((card) => (
+          <Grid item xs={12} sm={6} md={4} lg={2.4} key={card.id}>
+            <Card sx={{ width: "100%", height: "100%" }}>
+              <CardContent>
+                <Typography variant="h6" sx={{ fontStyle: "oblique" }}>
+                  Note {card.id}
+                </Typography>
+                {editingCard?.id === card.id ? (
+                  <>
+                    <input
+                      type="text"
+                      name="title"
+                      value={editingCard?.id === card.id ? editingCard.title : card.title}
+                      placeholder="Title here"
+                      onChange={handleInputChange}
+                      style={{
+                        display: "block",
+                        marginBottom: "10px",
+                        padding: "5px",
+                        backgroundColor: "black",
+                        color: "white",
+                        
+                      }}
+                    />
+                    <input
+                      type="text"
+                      name="words"
+                      value={editingCard?.id === card.id ? editingCard.words : card.words}
+                      placeholder="Words of the day here"
+                      onChange={handleInputChange}
+                      style={{
+                        display: "block",
+                        marginBottom: "10px",
+                        padding: "3px",
+                        backgroundColor: "black",
+                        color: "white",
+                        fontStyle: "italic",
+                        width:"60%"
+                      }}
+                    />
+                      
+                    <textarea
+                      placeholder="Description of the Text here"
+                      name="describe"
+                      value={editingCard.id === card.id ? editingCard.describe : card.describe}
+                      style={{
+                        display: "block",
+                        padding: "15px",
+                        backgroundColor: "black",
+                        color: "white",
+                        width: "60%", 
+                        height: "50px", 
+                      }}
+                      onChange={handleInputChange}
+                    ></textarea>
+                  </>
+                ) : (
+                  <>
+                    <Typography variant="h6">{card.title}</Typography>
+                    <Typography variant="body1" sx={{ fontStyle: "italic", fontSize: "13px" }}>
+                      {card.words}
+                    </Typography>
+                    <Typography variant="body2" sx={{py:2}}>{card.describe}</Typography>
+                  </>
+                )}
+              </CardContent>
+              <CardActions>
+                <Button size="small" sx={{ py: 1 }} onClick={() => editCard(card.id)}>
+                  <EditIcon />
+                </Button>
+                <Button size="small" sx={{ py: 1 }} onClick={() => deleteCard(card.id)}>
+                  <DeleteForeverIcon />
+                </Button>
+                <Button
+                  size="small"
+                  sx={{ py: 1, width: "60%" }}
+                  onClick={handleSave}
+                  disabled={editingCard.id !== card.id}
+                >
+                  Save
+                </Button>
+              </CardActions>
+            </Card>
+          </Grid>
+        ))}
+        <Grid item xs={12} sm={6} md={4} lg={2.4}>
+  <Button
+    variant="contained"
+    sx={{
+      width: "20%",
+      height: "100%",
+      minHeight: "150px",
+      mx: 2,
+      backgroundColor: "purple", 
+      color: "white",
+      borderRadius: "20px", 
+      boxShadow: 3, 
+      "&:hover": {
+        backgroundColor: "lightblue", 
+      },
+    }}
+    onClick={addCard}
+  >
+    <Typography variant="h5" sx={{ fontWeight: "bold" }}>+</Typography>
+  </Button>
+</Grid>
+      </Grid>
     </Box>
   );
 }
