@@ -6,8 +6,8 @@ import Typography from "@mui/material/Typography";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteForeverIcon from "@mui/icons-material/DeleteForever";
 import Button from "@mui/material/Button";
-import Grid from "@mui/material/Grid"; 
-import { useState } from "react";
+import Grid from "@mui/material/Grid";
+import { useState, useEffect } from "react";
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
@@ -19,13 +19,6 @@ export default function Cards() {
     describe: "Description goes here",
   });
 
-  const handleInputChange = (event) => {
-    setEditingCard({
-      ...editingCard,
-      [event.target.name]: event.target.value,
-    });
-  };
-
   let [cards, setCards] = useState([
     {
       id: 1,
@@ -34,6 +27,13 @@ export default function Cards() {
       describe: "Your words is the strength to me ",
     },
   ]);
+
+  useEffect(() => {
+    const savedCards = JSON.parse(localStorage.getItem("cards"));
+    if (savedCards) {
+      setCards(savedCards);
+    }
+  }, []);
 
   const addCard = () => {
     const newCard = {
@@ -44,6 +44,7 @@ export default function Cards() {
     };
     setEditingCard(newCard);
     setCards([...cards, newCard]);
+    localStorage.setItem("cards", JSON.stringify([...cards, newCard]));
   };
 
   const deleteCard = (id) => {
@@ -51,6 +52,7 @@ export default function Cards() {
     const deletedCards = cards.filter((cardId) => cardId.id !== id);
     if (!deletedCards) return toast.error("No card to be found to delete");
     setCards(deletedCards);
+    localStorage.setItem("cards", JSON.stringify(deletedCards));
     toast.error("Data Deleted Successfully");
   };
 
@@ -76,25 +78,33 @@ export default function Cards() {
     );
 
     setCards(updatedCards);
+    localStorage.setItem("cards", JSON.stringify(updatedCards));
     toast.success("Note Saved Successfully !");
     setEditingCard({ id: null, title: "", words: "", describe: "" });
+  };
+
+  const handleInputChange = (event) => {
+    setEditingCard({
+      ...editingCard,
+      [event.target.name]: event.target.value,
+    });
   };
 
   return (
     <Box
       sx={{
         display: "flex",
-    flexDirection: "column",
-    alignItems: "flex-start",
-    justifyContent: "flex-start",
-    width: "100%",
-    position: "fixed",
-    my: 2,
-    overflowY: "auto", 
-    maxHeight: "85vh" 
+        flexDirection: "column",
+        alignItems: "flex-start",
+        justifyContent: "flex-start",
+        width: "100%",
+        position: "fixed",
+        my: 2,
+        overflowY: "auto",
+        maxHeight: "85vh",
       }}
     >
-      <Grid container spacing={2} sx={{ width: "100%" }}> 
+      <Grid container spacing={2} sx={{ width: "100%" }}>
         {cards.map((card) => (
           <Grid item xs={12} sm={6} md={4} lg={2.4} key={card.id}>
             <Card sx={{ width: "100%", height: "100%" }}>
@@ -107,7 +117,11 @@ export default function Cards() {
                     <input
                       type="text"
                       name="title"
-                      value={editingCard?.id === card.id ? editingCard.title : card.title}
+                      value={
+                        editingCard?.id === card.id
+                          ? editingCard.title
+                          : card.title
+                      }
                       placeholder="Title here"
                       onChange={handleInputChange}
                       style={{
@@ -116,13 +130,16 @@ export default function Cards() {
                         padding: "5px",
                         backgroundColor: "black",
                         color: "white",
-                        
                       }}
                     />
                     <input
                       type="text"
                       name="words"
-                      value={editingCard?.id === card.id ? editingCard.words : card.words}
+                      value={
+                        editingCard?.id === card.id
+                          ? editingCard.words
+                          : card.words
+                      }
                       placeholder="Words of the day here"
                       onChange={handleInputChange}
                       style={{
@@ -132,21 +149,25 @@ export default function Cards() {
                         backgroundColor: "black",
                         color: "white",
                         fontStyle: "italic",
-                        width:"60%"
+                        width: "60%",
                       }}
                     />
-                      
+
                     <textarea
                       placeholder="Description of the Text here"
                       name="describe"
-                      value={editingCard.id === card.id ? editingCard.describe : card.describe}
+                      value={
+                        editingCard.id === card.id
+                          ? editingCard.describe
+                          : card.describe
+                      }
                       style={{
                         display: "block",
                         padding: "15px",
                         backgroundColor: "black",
                         color: "white",
-                        width: "60%", 
-                        height: "50px", 
+                        width: "60%",
+                        height: "50px",
                       }}
                       onChange={handleInputChange}
                     ></textarea>
@@ -154,18 +175,34 @@ export default function Cards() {
                 ) : (
                   <>
                     <Typography variant="h6">{card.title}</Typography>
-                    <Typography variant="body1" sx={{ fontStyle: "italic", fontSize: "13px" }}>
+                    <Typography
+                      variant="body1"
+                      sx={{ fontStyle: "italic", fontSize: "13px" }}
+                    >
                       {card.words}
                     </Typography>
-                    <Typography variant="body2" sx={{py:2}}>{card.describe}</Typography>
+                    <Typography variant="body2" sx={{ py: 2 }}>
+                      {card.describe}
+                    </Typography>
                   </>
                 )}
               </CardContent>
               <CardActions>
-                <Button size="small" sx={{ py: 1 }} onClick={() =>{ editCard(card.id)}} disabled={editingCard.id === card.id}>
+                <Button
+                  size="small"
+                  sx={{ py: 1 }}
+                  onClick={() => {
+                    editCard(card.id);
+                  }}
+                  disabled={editingCard.id === card.id}
+                >
                   <EditIcon />
                 </Button>
-                <Button size="small" sx={{ py: 1 }} onClick={() => deleteCard(card.id)}>
+                <Button
+                  size="small"
+                  sx={{ py: 1 }}
+                  onClick={() => deleteCard(card.id)}
+                >
                   <DeleteForeverIcon />
                 </Button>
                 <Button
@@ -181,26 +218,28 @@ export default function Cards() {
           </Grid>
         ))}
         <Grid item xs={12} sm={6} md={4} lg={2.4}>
-  <Button
-    variant="contained"
-    sx={{
-      width: "20%",
-      height: "100%",
-      minHeight: "150px",
-      mx: 2,
-      backgroundColor: "purple", 
-      color: "white",
-      borderRadius: "20px", 
-      boxShadow: 3, 
-      "&:hover": {
-        backgroundColor: "lightblue", 
-      },
-    }}
-    onClick={addCard}
-  >
-    <Typography variant="h5" sx={{ fontWeight: "bold" }}>+</Typography>
-  </Button>
-</Grid>
+          <Button
+            variant="contained"
+            sx={{
+              width: "20%",
+              height: "100%",
+              minHeight: "150px",
+              mx: 2,
+              backgroundColor: "purple",
+              color: "white",
+              borderRadius: "20px",
+              boxShadow: 3,
+              "&:hover": {
+                backgroundColor: "lightblue",
+              },
+            }}
+            onClick={addCard}
+          >
+            <Typography variant="h5" sx={{ fontWeight: "bold" }}>
+              +
+            </Typography>
+          </Button>
+        </Grid>
       </Grid>
     </Box>
   );
