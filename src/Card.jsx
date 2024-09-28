@@ -162,7 +162,7 @@ export default function Cards() {
                 )}
               </CardContent>
               <CardActions>
-                <Button size="small" sx={{ py: 1 }} onClick={() => editCard(card.id)}>
+                <Button size="small" sx={{ py: 1 }} onClick={() =>{ editCard(card.id)}} disabled={editingCard.id === card.id}>
                   <EditIcon />
                 </Button>
                 <Button size="small" sx={{ py: 1 }} onClick={() => deleteCard(card.id)}>
